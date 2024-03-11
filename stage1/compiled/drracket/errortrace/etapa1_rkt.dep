@@ -1,0 +1,1 @@
+("8.11.1" ta6le ("f9470c3fc1738463368afc8af1bb009a1f0db70c" . "48b9d49c49b73aac965ab226d92c80532c3dd247") #"/home/darius/Documents/Facultate/PP/etapa1/suffix-tree.rkt" (collects #"drracket" #"private" #"drracket-errortrace-key.rkt") (collects #"racket" #"main.rkt") (collects #"racket" #"runtime-config.rkt"))
