@@ -28,7 +28,18 @@
 ; Opriți căutarea (parcurgerea) în momentul în care aveți garanția 
 ; că prefixul comun curent este prefixul comun final.
 (define (longest-common-prefix-of-list words)
-  'your-code-here)
+  (define (helper prefix words)
+    (if (null? prefix)
+       (if (= (length words) 1)
+          (car words)
+          (helper (car (longest-common-prefix (car words) (cadr words))) (cddr words)))
+       (if (null? words)
+           prefix
+           (helper (car (longest-common-prefix prefix (car words))) (cdr words)))
+       )
+    )
+  (helper '() words)
+)
 
 
 ;; Următoarele două funcții sunt utile căutării unui șablon
@@ -52,6 +63,15 @@
 ;;   sufixelor din subarborele său)
 
 
+(define stree-1
+  '(((#\$))
+    ((#\a) ((#\$))
+           ((#\n #\a) ((#\$))
+                      ((#\n #\a #\$))))
+    ((#\b #\a #\n #\a #\n #\a #\$))
+    ((#\n #\a) ((#\$))
+               ((#\n #\a #\$)))))
+
 ; TODO 4
 ; Implementați funcția match-pattern-with-label care primește un
 ; arbore de sufixe și un șablon nevid și realizează un singur pas 
@@ -72,7 +92,19 @@
 ; Obs: deși exemplele folosesc stringuri pentru claritate, vă
 ; reamintim că în realitate lucrăm cu liste de caractere.
 (define (match-pattern-with-label st pattern)
-  'your-code-here)
+  (define result (get-ch-branch st (car pattern)))
+  (if (false? result)
+      (list #f '())
+      (cond
+        ((equal? (car (longest-common-prefix pattern (car result))) pattern)
+         #t)
+        ((and (< (length (car (longest-common-prefix pattern (car result)))) (length pattern)) (not (equal? (car (longest-common-prefix pattern (car result))) (car result))))
+         (list #f (cadr (longest-common-prefix pattern (car result))))) 
+        (else
+         (list (car result) (cadr (longest-common-prefix pattern (car result))) (cdr result))))))
+
+
+
 
 
 ; TODO 5
@@ -80,4 +112,10 @@
 ; arbore de sufixe și un șablon și întoarce true dacă șablonul
 ; apare în arbore, respectiv false în caz contrar.
 (define (st-has-pattern? st pattern)
-  'your-code-here)
+  (define result (match-pattern-with-label st pattern))
+  (if (pair? result)
+      ; Primul element nu e false, deci sablonul apare in arbore
+      (not (false? (car result)))
+      ; E true
+      #t)
+  )
