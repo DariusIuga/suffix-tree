@@ -62,16 +62,6 @@
 ;;   "na", pentru că eticheta este cel mai lung prefix comun al
 ;;   sufixelor din subarborele său)
 
-
-(define stree-1
-  '(((#\$))
-    ((#\a) ((#\$))
-           ((#\n #\a) ((#\$))
-                      ((#\n #\a #\$))))
-    ((#\b #\a #\n #\a #\n #\a #\$))
-    ((#\n #\a) ((#\$))
-               ((#\n #\a #\$)))))
-
 ; TODO 4
 ; Implementați funcția match-pattern-with-label care primește un
 ; arbore de sufixe și un șablon nevid și realizează un singur pas 

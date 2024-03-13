@@ -150,7 +150,10 @@
 ; a arborilor de sufixe.
 (define (get-ch-branch st ch)
   (cond
+    ; Nu exista
     ((st-empty? st) #f )
-    ((equal? ch (car(car(first-branch st)))) (first-branch st))
+    ; Am gasit ramura
+    ((equal? ch (car (get-branch-label (first-branch st)))) (first-branch st))
+    ; Ma uit la celelalte ramuri
     (else (get-ch-branch (other-branches st) ch))
   ))
