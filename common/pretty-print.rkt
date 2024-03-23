@@ -1,5 +1,7 @@
 #lang racket
 (require "suffix-tree.rkt")
+(require "etapa2.rkt")
+
 
 (provide (all-defined-out))
 
@@ -62,7 +64,107 @@
     ((#\b) ((#\$))
            ((#\b #\$)))))
 
-(displayln (pretty-print '(((#\a)))))
-(displayln (pretty-print '(((#\b) ((#\b #\$)) ((#\$))))))
-(displayln (pretty-print stree-1))
-(displayln (pretty-print stree-2))
+;(displayln (pretty-print '(((#\a)))))
+;(displayln (pretty-print '(((#\b) ((#\b #\$)) ((#\$))))))
+;(displayln (pretty-print stree-1))
+;(displayln (pretty-print stree-2))
+
+; sufixe banana
+(define suff-1
+  '((#\b #\a #\n #\a #\n #\a #\$)
+    (#\a #\n #\a #\n #\a #\$)
+    (#\n #\a #\n #\a #\$)
+    (#\a #\n #\a #\$)
+    (#\n #\a #\$)
+    (#\a #\$)
+    (#\$)))
+
+; sufixe agcgacgag
+(define suff-2
+  '((#\a #\g #\c #\g #\a #\c #\g #\a #\g #\$)
+    (#\g #\c #\g #\a #\c #\g #\a #\g #\$)
+    (#\c #\g #\a #\c #\g #\a #\g #\$)
+    (#\g #\a #\c #\g #\a #\g #\$)
+    (#\a #\c #\g #\a #\g #\$)
+    (#\c #\g #\a #\g #\$)
+    (#\g #\a #\g #\$)
+    (#\a #\g #\$)
+    (#\g #\$)
+    (#\$)))
+
+; sufixe mississippi
+(define suff-3
+  '((#\m #\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
+    (#\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
+    (#\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
+    (#\s #\i #\s #\s #\i #\p #\p #\i #\$)
+    (#\i #\s #\s #\i #\p #\p #\i #\$)
+    (#\s #\s #\i #\p #\p #\i #\$)
+    (#\s #\i #\p #\p #\i #\$)
+    (#\i #\p #\p #\i #\$)
+    (#\p #\p #\i #\$)
+    (#\p #\i #\$)
+    (#\i #\$)
+    (#\$)))
+
+; ST compact pentru "banana".
+(define stree-1c
+  '(((#\$))
+    ((#\a) ((#\$))
+           ((#\n #\a) ((#\$))
+                      ((#\n #\a #\$))))
+    ((#\b #\a #\n #\a #\n #\a #\$))
+    ((#\n #\a) ((#\$))
+               ((#\n #\a #\$)))))
+
+; ST atomic pentru "banana".
+(define stree-1a
+  '(((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$)))) ((#\$)))) ((#\$)))
+    ((#\b) ((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$))))))))
+    ((#\n) ((#\a) ((#\n) ((#\a) ((#\$)))) ((#\$))))
+    ((#\$))))
+
+; ST compact pentru "agcgacgag".
+(define stree-2c
+  '(((#\c #\g #\a) ((#\c #\g #\a #\g #\$)) ((#\g #\$)))
+    ((#\a) ((#\c #\g #\a #\g #\$)) ((#\g) ((#\c #\g #\a #\c #\g #\a #\g #\$)) ((#\$))))
+    ((#\g) ((#\c #\g #\a #\c #\g #\a #\g #\$)) ((#\a) ((#\c #\g #\a #\g #\$)) ((#\g #\$))) ((#\$)))
+    ((#\$))))
+
+; ST atomic pentru "agcgacgag".
+(define stree-2a
+  '(((#\$))
+    ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$)) ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))))))))
+    ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$))))))
+    ((#\g)
+     ((#\$))
+     ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$))))
+     ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$))))))))))))
+
+; ST compact pentru "mississippi".
+(define stree-3c
+  '(((#\$))
+    ((#\i) ((#\$)) ((#\p #\p #\i #\$)) ((#\s #\s #\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$))))
+    ((#\m #\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$))
+    ((#\p) ((#\i #\$)) ((#\p #\i #\$)))
+    ((#\s) ((#\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$))) ((#\s #\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$)))))
+  )
+
+; ST atomic pentru "mississippi".
+(define stree-3a
+  '(((#\$))
+    ((#\m) ((#\i) ((#\s) ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))))))))
+    ((#\i)
+     ((#\$))
+     ((#\s) ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))))
+     ((#\p) ((#\p) ((#\i) ((#\$))))))
+    ((#\s)
+     ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))
+     ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))))
+    ((#\p) ((#\i) ((#\$))) ((#\p) ((#\i) ((#\$)))))))
+
+(displayln (pretty-print stree-1a))
+(displayln (pretty-print (suffixes->st ast-func suff-1 (string->list "abn$"))))
+
+;(displayln (pretty-print stree-1c))
+;(displayln (pretty-print (suffixes->st cst-func suff-1 (string->list "$abn"))))

@@ -114,17 +114,23 @@
 ; folosiți funcționale.
 (define (suffixes->st labeling-func suffixes alphabet)
   (let ((prev-step (map labeling-func (remove-null (map (λ (ch) (get-ch-words suffixes ch)) alphabet)))))
-    (map (λ (branch) (
-                      if (equal? '(#\$) (car branch))
-                         (list (car branch))
-                         (cons (car branch) (suffixes->st labeling-func (list (cdr branch)) (set-intersect alphabet (cadr branch))))
-                         ))
+    (map (λ (branch) 
+           (if (equal? '(#\$) (car branch))
+               (list (car branch))
+               (cons (car branch) (suffixes->st labeling-func (cdr branch) alphabet))
+               )
+           )
          prev-step)
     )
   )
 
 (define (remove-null list)
   (filter (λ (el) (not (null? el))) list))
+
+(define (put-$-at-end list)
+  (if (equal? '(#\$) (car (car list)))
+      (cons (cdr list) (car list))
+      list))
 
 ; TODO 6
 ; Această sarcină constă în implementarea a trei funcții:
