@@ -179,13 +179,13 @@
 
 (exercițiul 5 : 40 puncte)
 (check-part 'a (/ 1 8) (suffixes->st ast-func suff-1 (string->list "abn$")) is stree-1a)
-;(check-part 'b (/ 1 8) (suffixes->st cst-func suff-1 (string->list "$abn")) is stree-1c)
+(check-part 'b (/ 1 8) (suffixes->st cst-func suff-1 (string->list "$abn")) is stree-1c)
 (check-part 'c (/ 1 8) (suffixes->st ast-func suff-2 (string->list "$acg")) is stree-2a)
-;(check-part 'd (/ 1 8) (suffixes->st cst-func suff-2 (string->list "cag$")) is stree-2c)
+(check-part 'd (/ 1 8) (suffixes->st cst-func suff-2 (string->list "cag$")) is stree-2c)
 (check-part 'e (/ 1 8) (suffixes->st ast-func suff-3 (string->list "$misp")) is stree-3a)
-;(check-part 'f (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$imps")) is stree-3c)
+(check-part 'f (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$imps")) is stree-3c)
 (check-part 'g (/ 1 8) (suffixes->st ast-func suff-2 (string->list "$abcdefg")) is stree-2a)
-;(check-part 'h (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$abcdefghijklmnopqrstuvwxyz")) is stree-3c)
+(check-part 'h (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$abcdefghijklmnopqrstuvwxyz")) is stree-3c)
 
 (exercițiul 6 : 30 puncte)
 (when (andmap procedure? (list text->ast text->cst))

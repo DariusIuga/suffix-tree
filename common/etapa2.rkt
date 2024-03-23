@@ -60,10 +60,15 @@
 ; Folosiți funcționale (și nu folosiți recursivitate explicită).
 (define (get-ch-words words ch)
   (filter (λ (word) (if (list? word)
-                        (equal? (car word) ch)
-                        (equal? word ch))) words)
+                        (if (null? word)
+                            #f
+                            (equal? (car word) ch)
+                            )
+                        (equal? word ch)
+                        )
+            )
+          words)
   )
-
 
 ; TODO 3
 ; Implementați o funcție care primește o listă nevidă de sufixe 
@@ -113,9 +118,11 @@
 ; pentru celelalte prelucrări (pașii 2 și 3) trebuie să
 ; folosiți funcționale.
 (define (suffixes->st labeling-func suffixes alphabet)
-  (let ((prev-step (map labeling-func (remove-null (map (λ (ch) (get-ch-words suffixes ch)) alphabet)))))
+  ; Steps 2 and 3
+  (let ((prev-step (map labeling-func (filter (λ (el) (not (null? el))) (map (λ (ch) (get-ch-words suffixes ch)) alphabet)))))
     (map (λ (branch) 
            (if (equal? '(#\$) (car branch))
+               ; The end of the branch
                (list (car branch))
                (cons (car branch) (suffixes->st labeling-func (cdr branch) alphabet))
                )
@@ -123,14 +130,6 @@
          prev-step)
     )
   )
-
-(define (remove-null list)
-  (filter (λ (el) (not (null? el))) list))
-
-(define (put-$-at-end list)
-  (if (equal? '(#\$) (car (car list)))
-      (cons (cdr list) (car list))
-      list))
 
 ; TODO 6
 ; Această sarcină constă în implementarea a trei funcții:
