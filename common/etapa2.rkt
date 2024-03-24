@@ -43,14 +43,12 @@
 ; => '((#\w #\h #\y #\$) (#\h #\y #\$) (#\y #\$) (#\$))
 ; Folosiți recursivitate pe stivă.
 (define (get-suffixes text)
-  (define (get-suffixes-helper accumulator text)
-    (if (empty? text)
-        accumulator
-        (get-suffixes-helper (append accumulator (list text)) (cdr text))
-        )
-    )
-  (get-suffixes-helper '() text)
-)
+  (if (empty? text)
+      '()
+      (cons text (get-suffixes (cdr text)))
+      )
+  )
+
 
 ; TODO 2
 ; Implementați o funcție care primește o listă de cuvinte 

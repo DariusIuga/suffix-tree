@@ -43,7 +43,11 @@
 ; => '((#\w #\h #\y #\$) (#\h #\y #\$) (#\y #\$) (#\$))
 ; Folosiți recursivitate pe stivă.
 (define (get-suffixes text)
-  'your-code-here)
+  (if (empty? text)
+      '()
+      (cons text (get-suffixes (cdr text)))
+      )
+  )
 
 
 ; TODO 2
@@ -53,8 +57,16 @@
 ; Atenție, este posibil ca unele cuvinte să fie vide.
 ; Folosiți funcționale (și nu folosiți recursivitate explicită).
 (define (get-ch-words words ch)
-  'your-code-here)
-
+  (filter (λ (word) (if (list? word)
+                        (if (null? word)
+                            #f
+                            (equal? (car word) ch)
+                            )
+                        (equal? word ch)
+                        )
+            )
+          words)
+  )
 
 ; TODO 3
 ; Implementați o funcție care primește o listă nevidă de sufixe 
@@ -66,8 +78,14 @@
 ; se obțin din cele vechi prin eliminarea acestui caracter.
 ; Nu folosiți recursivitate explicită.
 (define (ast-func suffixes)
-  'your-code-here)
-
+  (if (null? suffixes)
+      '()
+      (if (list? (car suffixes))
+          (cons (list (car (car suffixes))) (map cdr suffixes))
+          (cons (list (car suffixes)) (cdr suffixes)) 
+          )
+      )
+  )
 
 ; TODO 4
 ; Implementați o funcție care primește o listă nevidă de sufixe 
@@ -78,7 +96,11 @@
 ; acestui prefix.
 ; Nu folosiți recursivitate explicită.
 (define (cst-func suffixes)
-  'your-code-here)
+  ; Folosesc functia asta din etapa intai ca sa gasesc cel mai lung prefix comun din lista
+  (let ((prefix (longest-common-prefix-of-list suffixes)))
+    ; Pentru fiecare cuvant tai primele (length prefix) caractere din el
+    (cons prefix (map (λ (word) (drop word (length prefix))) suffixes))))
+
 
 
 ; TODO 5
@@ -94,8 +116,18 @@
 ; pentru celelalte prelucrări (pașii 2 și 3) trebuie să
 ; folosiți funcționale.
 (define (suffixes->st labeling-func suffixes alphabet)
-  'your-code-here)
-
+  ; Steps 2 and 3
+  (let ((prev-step (map labeling-func (filter (λ (el) (not (null? el))) (map (λ (ch) (get-ch-words suffixes ch)) alphabet)))))
+    (map (λ (branch) 
+           (if (equal? '(#\$) (car branch))
+               ; The end of the branch
+               (list (car branch))
+               (cons (car branch) (suffixes->st labeling-func (cdr branch) alphabet))
+               )
+           )
+         prev-step)
+    )
+  )
 
 ; TODO 6
 ; Această sarcină constă în implementarea a trei funcții:
@@ -120,16 +152,29 @@
 ; Obs: Din acest motiv, checker-ul testează doar funcțiile
 ; text->ast și text->cst.
 (define text->st
-  'your-code-here)
+  (λ (labeling-func)
+    (λ (text)
+      (let* (($-terminated-text (append text '(#\$)))(suffixes (get-suffixes $-terminated-text)) (alphabet (remove-duplicates (sort $-terminated-text char<?))))
+        (suffixes->st labeling-func suffixes alphabet)
+        )
+      )
+    )
+  )
 
 ; b) Din funcția text->st derivați funcția text->ast care
 ; primește un text (listă de caractere) și întoarce AST-ul
 ; asociat textului.
 (define text->ast
-  'your-code-here)
+  (λ (text)
+    ((text->st ast-func) text)
+    )
+  )
 
 ; c) Din funcția text->st derivați funcția text->cst care
 ; primește un text (listă de caractere) și întoarce CST-ul
 ; asociat textului.
 (define text->cst
-  'your-code-here)
+  (λ (text)
+    ((text->st cst-func) text)
+    )
+  )
