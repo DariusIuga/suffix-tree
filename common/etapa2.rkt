@@ -154,16 +154,29 @@
 ; Obs: Din acest motiv, checker-ul testează doar funcțiile
 ; text->ast și text->cst.
 (define text->st
-  'your-code-here)
+  (λ (labeling-func)
+    (λ (text)
+      (let* (($-terminated-text (append text '(#\$)))(suffixes (get-suffixes $-terminated-text)) (alphabet (remove-duplicates (sort $-terminated-text char<?))))
+        (suffixes->st labeling-func suffixes alphabet)
+        )
+      )
+    )
+  )
 
 ; b) Din funcția text->st derivați funcția text->ast care
 ; primește un text (listă de caractere) și întoarce AST-ul
 ; asociat textului.
 (define text->ast
-  'your-code-here)
+  (λ (text)
+    ((text->st ast-func) text)
+    )
+  )
 
 ; c) Din funcția text->st derivați funcția text->cst care
 ; primește un text (listă de caractere) și întoarce CST-ul
 ; asociat textului.
 (define text->cst
-  'your-code-here)
+  (λ (text)
+    ((text->st cst-func) text)
+    )
+  )
