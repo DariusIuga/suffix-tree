@@ -27,7 +27,8 @@
 ; uneltele necesare implementării operatorului corespunzător
 ; pentru tipul text (pentru că în etapa 2 ați implementat
 ; construcția arborelui de sufixe asociat unui text).
-(define (substring? text pattern) (st-has-pattern? (text->cst text) pattern))
+(define (substring? text pattern)
+  'your-code-here)
 
 
 ; TODO 2

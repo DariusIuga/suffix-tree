@@ -103,9 +103,30 @@
 ; apare în arbore, respectiv false în caz contrar.
 (define (st-has-pattern? st pattern)
   (define result (match-pattern-with-label st pattern))
-  (if (pair? result)
-      ; Primul element nu e false, deci sablonul apare in arbore
-      (not (false? (car result)))
-      ; E true
-      #t)
+  ;(if (pair? result)
+      ;; Primul element nu e false, deci sablonul apare in arbore
+      ;(not (false? (car result)))
+      ;; E true
+      ;#t)
+  (if (equal? result #t)
+      #t
+      ; pattern nu s-a gasit la inceputul cuvantului
+      (substring-in-suffix-tree? st pattern)
+      )
   )
+
+(define (substring-in-suffix-tree? tree str)
+  (define (member? x lst)
+    (if (not (list? lst))
+        (equal? x lst)
+        (cond
+          ((empty? lst) #f)
+          ((equal? x (car lst)) #t)
+          (else (member? x (rest lst))))
+        )
+    )
+  (define (substring-in-branch branch str)
+    (string-contains? (list->string (flatten branch)) (list->string str)))
+  (member? #t (member #t (map (λ (branch) (substring-in-branch branch str)) tree)))
+  )
+
