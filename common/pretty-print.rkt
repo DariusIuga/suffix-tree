@@ -47,23 +47,6 @@
 
   (helper '() augmented-tree))
 
-
-; ST pentru "banana".
-(define stree-1
-  '(((#\$))
-    ((#\a) ((#\$))
-           ((#\n #\a) ((#\$))
-                      ((#\n #\a #\$))))
-    ((#\b #\a #\n #\a #\n #\a #\$))
-    ((#\n #\a) ((#\$))
-               ((#\n #\a #\$)))))
-
-; ST pentru sufixele nevide ale lui "abb".
-(define stree-2
-  '(((#\a #\b #\b #\$))
-    ((#\b) ((#\$))
-           ((#\b #\$)))))
-
 (displayln (pretty-print '(((#\a)))))
 (displayln (pretty-print '(((#\b) ((#\b #\$)) ((#\$))))))
 (displayln (pretty-print stree-1))

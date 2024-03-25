@@ -81,7 +81,7 @@
   (if (null? suffixes)
       '()
       (if (list? (car suffixes))
-          (cons (list (car (car suffixes))) (map cdr suffixes))
+          (cons (list (caar suffixes)) (map cdr suffixes))
           (cons (list (car suffixes)) (cdr suffixes)) 
           )
       )
