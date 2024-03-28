@@ -1,7 +1,8 @@
 #lang racket
 (require "suffix-tree.rkt")
-
 (provide (all-defined-out))
+
+
 
 ; TODO 2
 ; Implementați o funcție care primește două cuvinte (liste
@@ -89,7 +90,7 @@
         ((equal? (car (longest-common-prefix pattern (car result))) pattern)
          #t)
         ((and (< (length (car (longest-common-prefix pattern (car result)))) (length pattern)) (not (equal? (car (longest-common-prefix pattern (car result))) (car result))))
-         (list #f (cadr (longest-common-prefix pattern (car result))))) 
+         (list #f (car (longest-common-prefix pattern (car result))))) 
         (else
          (list (car result) (cadr (longest-common-prefix pattern (car result))) (cdr result))))))
 

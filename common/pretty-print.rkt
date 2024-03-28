@@ -1,6 +1,9 @@
 #lang racket
 (require "suffix-tree.rkt")
+;(require "etapa1.rkt")
 (require "etapa2.rkt")
+(require "etapa3.rkt")
+
 
 
 (provide (all-defined-out))
@@ -47,7 +50,10 @@
 
   (helper '() augmented-tree))
 
-(displayln (pretty-print '(((#\a)))))
-(displayln (pretty-print '(((#\b) ((#\b #\$)) ((#\$))))))
-(displayln (pretty-print stree-1))
-(displayln (pretty-print stree-2))
+;(displayln (pretty-print '(((#\a)))))
+;(displayln (pretty-print '(((#\b) ((#\b #\$)) ((#\$))))))
+;(displayln (pretty-print stree-1))
+;(displayln (pretty-print stree-2))
+(text->cst (string->list "babxabxaaxxaba"))
+(longest-match (text->cst (string->list "babxabxaaxxaba")) (string->list "xabac"))
+(displayln (pretty-print (text->cst (string->list "babxabxaaxxaba"))))
