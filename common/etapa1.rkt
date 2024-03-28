@@ -3,7 +3,6 @@
 (provide (all-defined-out))
 
 
-
 ; TODO 2
 ; Implementați o funcție care primește două cuvinte (liste
 ; de caractere) w1 și w2 și calculează cel mai lung prefix
@@ -94,40 +93,25 @@
         (else
          (list (car result) (cadr (longest-common-prefix pattern (car result))) (cdr result))))))
 
-
-
-
-
 ; TODO 5
 ; Implementați funcția st-has-pattern? care primește un
 ; arbore de sufixe și un șablon și întoarce true dacă șablonul
 ; apare în arbore, respectiv false în caz contrar.
 (define (st-has-pattern? st pattern)
-  (define result (match-pattern-with-label st pattern))
-  ;(if (pair? result)
-      ;; Primul element nu e false, deci sablonul apare in arbore
-      ;(not (false? (car result)))
-      ;; E true
-      ;#t)
-  (if (equal? result #t)
-      #t
-      ; pattern nu s-a gasit la inceputul cuvantului
-      (substring-in-suffix-tree? st pattern)
-      )
+  (equal? (length pattern) (length (longest-match st pattern)))
   )
 
-(define (substring-in-suffix-tree? tree str)
-  (define (member? x lst)
-    (if (not (list? lst))
-        (equal? x lst)
-        (cond
-          ((empty? lst) #f)
-          ((equal? x (car lst)) #t)
-          (else (member? x (rest lst))))
-        )
+(define (longest-match st pattern)
+  (let
+      ((last-step (match-pattern-with-label st pattern)))
+    (cond
+      ; We stop searching, the string was found after one step
+      ((equal? last-step #t) pattern)
+      ; We stop searching, the string probably wasn't matched fully, only a prefix of it
+      ((equal? (car last-step) #f) (cadr last-step))
+      ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
+      (else (append (car last-step) (longest-match (caddr last-step) (cadr last-step))))
+      )
     )
-  (define (substring-in-branch branch str)
-    (string-contains? (list->string (flatten branch)) (list->string str)))
-  (member? #t (member #t (map (λ (branch) (substring-in-branch branch str)) tree)))
   )
 

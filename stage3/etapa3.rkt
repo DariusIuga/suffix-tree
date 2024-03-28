@@ -27,8 +27,7 @@
 ; uneltele necesare implementării operatorului corespunzător
 ; pentru tipul text (pentru că în etapa 2 ați implementat
 ; construcția arborelui de sufixe asociat unui text).
-(define (substring? text pattern)
-  'your-code-here)
+(define (substring? text pattern) (st-has-pattern? (text->cst text) pattern))
 
 
 ; TODO 2
@@ -48,7 +47,41 @@
 ; șirului comun cu acest caracter.
 ; Hint: Revizitați funcția match-pattern-with-label (etapa 1).
 (define (longest-common-substring text1 text2)
-  'your-code-here)
+  (let*
+      (
+       (st1 (text->cst text1))
+       (best-matches (map (λ (suffix) (longest-match st1 suffix)) (get-suffixes text2)))
+       )
+    
+    ; Returns the first of the longest lists found
+    (let iter ((remaining best-matches) (longest '()))
+      (if (null? remaining)
+          ; We finished iterating
+          longest
+          (if (> (length (car remaining)) (length longest))
+              ; Update the longest list
+              (iter (cdr remaining) (car remaining))
+              ; The current list wasn't longer
+              (iter (cdr remaining) longest)
+              )
+          )
+      )
+    )
+  )
+
+(define (longest-match st pattern)
+  (let
+      ((last-step (match-pattern-with-label st pattern)))
+    (cond
+      ; We stop searching, the string was found after one step
+      ((equal? last-step #t) pattern)
+      ; We stop searching, the string probably wasn't matched fully, only a prefix of it
+      ((equal? (car last-step) #f) (cadr last-step))
+      ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
+      (else (append (car last-step) (longest-match (caddr last-step) (cadr last-step))))
+      )
+    )
+  )
 
 
 ; TODO 3

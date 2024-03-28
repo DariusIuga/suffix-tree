@@ -1,7 +1,7 @@
 #lang racket
 (require "suffix-tree.rkt")
-
 (provide (all-defined-out))
+
 
 ; TODO 2
 ; Implementați o funcție care primește două cuvinte (liste
@@ -89,23 +89,29 @@
         ((equal? (car (longest-common-prefix pattern (car result))) pattern)
          #t)
         ((and (< (length (car (longest-common-prefix pattern (car result)))) (length pattern)) (not (equal? (car (longest-common-prefix pattern (car result))) (car result))))
-         (list #f (cadr (longest-common-prefix pattern (car result))))) 
+         (list #f (car (longest-common-prefix pattern (car result))))) 
         (else
          (list (car result) (cadr (longest-common-prefix pattern (car result))) (cdr result))))))
-
-
-
-
 
 ; TODO 5
 ; Implementați funcția st-has-pattern? care primește un
 ; arbore de sufixe și un șablon și întoarce true dacă șablonul
 ; apare în arbore, respectiv false în caz contrar.
 (define (st-has-pattern? st pattern)
-  (define result (match-pattern-with-label st pattern))
-  (if (pair? result)
-      ; Primul element nu e false, deci sablonul apare in arbore
-      (not (false? (car result)))
-      ; E true
-      #t)
+  (equal? (length pattern) (length (longest-match st pattern)))
   )
+
+(define (longest-match st pattern)
+  (let
+      ((last-step (match-pattern-with-label st pattern)))
+    (cond
+      ; We stop searching, the string was found after one step
+      ((equal? last-step #t) pattern)
+      ; We stop searching, the string probably wasn't matched fully, only a prefix of it
+      ((equal? (car last-step) #f) (cadr last-step))
+      ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
+      (else (append (car last-step) (longest-match (caddr last-step) (cadr last-step))))
+      )
+    )
+  )
+
