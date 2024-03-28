@@ -59,7 +59,7 @@
       (if (null? remaining)
           ; We finished iterating
           longest
-          (if (> (length (car best-matches)) (length longest))
+          (if (> (length (car remaining)) (length longest))
               ; Update the longest list
               (iter (cdr remaining) (car remaining))
               ; The current list wasn't longer
@@ -83,6 +83,8 @@
       )
     )
   )
+
+(longest-common-substring (string->list "babcxabac") (string->list "babxabxaaxxaba"))
 
 ;(trace longest-match)
 ;(longest-match (text->cst (string->list "babxabxaaxxaba")) (string->list "xabac"))
