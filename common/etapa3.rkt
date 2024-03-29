@@ -87,4 +87,67 @@
 ; Folosiți interfața definită în fișierul suffix-tree
 ; atunci când manipulați arborele.
 (define (repeated-substring-of-given-length text len)
-  'your-code-here)
+  ;(map string->list (sort (map list->string (generate-sublists text len)) string<?))
+  (let ((sorted-substrings (sort (generate-sublists text len) compare-char-lists)))
+    (return-first-true find-duplicate (text->cst text) sorted-substrings)
+    )
+  )
+
+(define (generate-sublists lst len)
+  (cond
+    ((= len 1) (map list lst))
+    ((= len (length lst)) (list lst))
+    (else
+     (if (< len (length lst))
+         (cons (take lst len)
+                 (generate-sublists (cdr lst) len))
+         '()))))
+
+(define (compare-char-lists lst1 lst2)
+  (cond
+    [(empty? lst1) #t]                                ; If lst1 is empty, return true
+    [(empty? lst2) #f]                                ; If lst2 is empty and lst1 is not, return false
+    [(char<? (car lst1) (car lst2)) #t]           ; If the first characters of lst1 is less than that of lst2, return true
+    [(char<? (car lst2) (car lst1)) #f]           ; If the first characters of lst2 is less than that of lst1, return false
+    [else (compare-char-lists (cdr lst1) (cdr lst2))])) ; If the first characters are equal, compare the rest of the lists
+
+(define (find-duplicate st string)
+  (let
+      ((last-step (match-and-give-rest st string)))
+    (cond
+      ; We stop searching, the string was found completely
+      ((equal? (car last-step) #t)
+       (if (not (equal? (cadr last-step) '()))
+           #t
+           #f)
+       )
+      ; We stop searching, the string wasn't matched fully, only a prefix of it
+      ((equal? (car last-step) #f) #f)
+      ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
+      (else (find-duplicate (caddr last-step) (cadr last-step)))
+      )
+    )
+  )
+
+(define (match-and-give-rest st pattern)
+  (define result (get-ch-branch st (car pattern)))
+  (if (false? result)
+      (list #f '())
+      (cond
+        ((equal? (car (longest-common-prefix pattern (car result))) pattern)
+         (list #t (cdr result)))
+        ((and (< (length (car (longest-common-prefix pattern (car result)))) (length pattern)) (not (equal? (car (longest-common-prefix pattern (car result))) (car result))))
+         (list #f (car (longest-common-prefix pattern (car result))))) 
+        (else
+         (list (car result) (cadr (longest-common-prefix pattern (car result))) (cdr result))))))
+
+; This function is more efficient than simply using map
+(define (return-first-true func st lst)
+  (cond
+    ((null? lst) #f) 
+    ((func st (car lst)) (car lst)) 
+    (else (return-first-true func st (cdr lst)))))
+
+
+;(generate-sublists (string->list "xabxa") 4)
+

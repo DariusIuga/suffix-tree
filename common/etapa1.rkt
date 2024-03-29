@@ -105,9 +105,9 @@
   (let
       ((last-step (match-pattern-with-label st pattern)))
     (cond
-      ; We stop searching, the string was found after one step
+      ; We stop searching, the string was found completely
       ((equal? last-step #t) pattern)
-      ; We stop searching, the string probably wasn't matched fully, only a prefix of it
+      ; We stop searching, the string wasn't matched fully, only a prefix of it
       ((equal? (car last-step) #f) (cadr last-step))
       ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
       (else (append (car last-step) (longest-match (caddr last-step) (cadr last-step))))
