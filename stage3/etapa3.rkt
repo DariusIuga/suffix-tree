@@ -69,20 +69,6 @@
     )
   )
 
-(define (longest-match st pattern)
-  (let
-      ((last-step (match-pattern-with-label st pattern)))
-    (cond
-      ; We stop searching, the string was found after one step
-      ((equal? last-step #t) pattern)
-      ; We stop searching, the string probably wasn't matched fully, only a prefix of it
-      ((equal? (car last-step) #f) (cadr last-step))
-      ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
-      (else (append (car last-step) (longest-match (caddr last-step) (cadr last-step))))
-      )
-    )
-  )
-
 
 ; TODO 3
 ; Implementați funcția repeated-substring-of-given-length
@@ -101,4 +87,72 @@
 ; Folosiți interfața definită în fișierul suffix-tree
 ; atunci când manipulați arborele.
 (define (repeated-substring-of-given-length text len)
-  'your-code-here)
+  ; All of the local variables are defined here. I use letrec to make recursive functions work
+  (letrec (
+         (generate-sublists (λ (lst len) (cond
+                                           ((= len 1) (map list lst))
+                                           ((= len (length lst)) (list lst))
+                                           (else
+                                            (if (< len (length lst))
+                                                (cons (take lst len)
+                                                      (generate-sublists (cdr lst) len))
+                                                '()
+                                                )
+                                            )
+                                           )
+                              )
+                            )
+         (compare-char-lists (λ (lst1 lst2) (cond
+                                              [(empty? lst1) #t]                               
+                                              [(empty? lst2) #f]                               
+                                              [(char<? (car lst1) (car lst2)) #t]
+                                              [(char<? (car lst2) (car lst1)) #f]                    
+                                              [else (compare-char-lists (cdr lst1) (cdr lst2))]
+                                              )
+                               )
+                             )
+         (sorted-substrings (sort (generate-sublists text len) compare-char-lists))
+         (find-duplicate (λ (st string)
+                           (let
+                               ((last-step (match-and-give-rest st string)))
+                             (cond
+                               ; We stop searching, the string was found completely
+                               ((equal? (car last-step) #t)
+                                (if (not (equal? (cadr last-step) '()))
+                                    #t
+                                    #f)
+                                )
+                               ; We stop searching, the string wasn't matched fully, only a prefix of it
+                               ((equal? (car last-step) #f) #f)
+                               ; We found a prefix of the string, and we keep searching for the rest using the new suffix tree and the rest of the pattern
+                               (else (find-duplicate (caddr last-step) (cadr last-step)))
+                               )
+                             )
+                           )
+                         )
+         (match-and-give-rest (λ (st string)   (define result (get-ch-branch st (car string)))
+                                (if (false? result)
+                                    (list #f '())
+                                    (cond
+                                      ((equal? (car (longest-common-prefix string (car result))) string)
+                                       (list #t (cdr result)))
+                                      ((and (< (length (car (longest-common-prefix string (car result)))) (length string)) (not (equal? (car (longest-common-prefix string (car result))) (car result))))
+                                       (list #f (car (longest-common-prefix string (car result))))) 
+                                      (else
+                                       (list (car result) (cadr (longest-common-prefix string (car result))) (cdr result))))
+                                    )
+                                )
+                              )
+         ; This function is more efficient than simply using map
+         (return-first-true (λ (func st lst) (cond
+                                          ((null? lst) #f) 
+                                          ((func st (car lst)) (car lst)) 
+                                          (else (return-first-true func st (cdr lst)))
+                                          )
+                              )
+                            )
+         )
+    (return-first-true find-duplicate (text->cst text) sorted-substrings)
+    )
+  )
+

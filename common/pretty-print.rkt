@@ -1,8 +1,8 @@
 #lang racket
 (require "suffix-tree.rkt")
-(require "etapa1.rkt")
-(require "etapa2.rkt")
-(require "etapa3.rkt")
+;(require "etapa1.rkt")
+;(require "etapa2.rkt")
+;(require "etapa3.rkt")
 (provide (all-defined-out))
 
 ; Numerotează elementele unei liste (asemănător cu `enumerate` din Python).
@@ -51,6 +51,3 @@
 ;(displayln (pretty-print '(((#\b) ((#\b #\$)) ((#\$))))))
 ;(displayln (pretty-print stree-1))
 ;(displayln (pretty-print stree-2))
-(define test-st (text->cst (string->list "xabxabxaaxbbxabxabxaaxbb")))
-(displayln (pretty-print test-st))
-;(find-duplicate test-st (string->list "xabxabb"))
