@@ -48,6 +48,8 @@
 
 (define (collection-second collection) (collection-first (collection-rest collection)))
 
+(define collection-append stream-append)
+
 (define collection-filter stream-filter)
 
 (define collection-map stream-map)
@@ -59,7 +61,37 @@
       )
   )
 
-(define (collection-length collection) (stream-length collection))
+(define-syntax-rule (collection-length collection) (stream-length collection))
 
 (define collection-tail stream-tail)
 
+(define (list->stream L)
+  (if (null? L)
+      empty-stream
+      (stream-cons (car L) (list->stream (cdr L)))))
+
+(define (qsort lt? strm)
+  (if (stream-empty? strm)
+      empty-stream
+      (let (
+            (x (stream-first strm))
+            (xs (stream-rest strm))
+            )
+        (stream-append
+          (qsort lt?
+            (stream-filter
+              (lambda (u) (lt? u x))
+              xs))
+          (stream x)
+          (qsort lt?
+            (stream-filter
+              (lambda (u) (not (lt? u x)))
+              xs)
+            )
+          )
+        )
+      )
+  )
+
+(define remove-duplicates-collection (λ (collection)
+  (stream-fold (λ (x y) (cons x (filter (lambda (z) (not (equal? x z))) y))) empty-collection collection)))

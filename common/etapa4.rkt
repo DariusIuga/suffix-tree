@@ -115,7 +115,7 @@
 
 
 (define (get-suffixes text)
-  (if (empty? text)
+  (if (null? text)
       empty-collection
       (collection-cons text (get-suffixes (collection-rest text)))
       )
@@ -155,20 +155,52 @@
 ; (desigur, și suffixes este un flux, fiind o colecție
 ; de sufixe)
 (define (suffixes->st labeling-func suffixes alphabet)
-  'your-code-here)
+  ; Steps 2 and 3
+  (let ((prev-step (collection-map labeling-func (collection-filter (λ (el) (not (collection-empty? el))) (collection-map (λ (ch) (get-ch-words suffixes ch)) alphabet)))))
+    (collection-map (λ (branch) 
+           (if (equal? '(#\$) (car branch))
+               ; The end of the branch
+               (list (car branch))
+               (collection-cons (car branch) (suffixes->st labeling-func (cdr branch) alphabet))
+               )
+           )
+         prev-step)
+    )
+  )
+
 
 
 ; nu uitați să convertiți alfabetul într-un flux
 (define text->st
-  'your-code-here)
+  (λ (labeling-func)
+    (λ (text)
+      (let* (
+             (stream-text (list->stream text))
+             ($-terminated-text (stream-append stream-text '(#\$)))
+             (suffixes (get-suffixes $-terminated-text))
+             (debug (stream->list $-terminated-text))
+             (alphabet (list->stream (remove-duplicates (stream->list (qsort char<? $-terminated-text)))))
+             )
+        (suffixes->st labeling-func suffixes alphabet)
+        )
+      )
+    )
+  )
 
 
 (define text->ast
-  'your-code-here)
-
+  (λ (text)
+    ((text->st ast-func) text)
+    )
+  )
 
 (define text->cst
-  'your-code-here)
+  (λ (text)
+    ((text->st cst-func) text)
+    )
+  )
+
+(stream->list (text->ast (string->list "banana")))
 
 
 ; dacă ați respectat bariera de abstractizare,
