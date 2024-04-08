@@ -4,6 +4,7 @@
 (require "etapa4.rkt")
 (require "datadump.rkt")
 (provide (all-defined-out))
+(require racket/trace)
 
 ; ignorați următoarele linii de cod...
 (define show-defaults 999) ; câte exerciții la care s-au întors rezultate default să fie arătate detaliat
@@ -119,6 +120,7 @@
 (sunt 4 exerciții)
 
 (exercițiul 1 : 30 puncte)
+(trace check-part)
 (check-part 'a (/ 1 5)
             (map (λ (S) (longest-common-prefix-of-collection (stream-map string->list S)))
                  (map list->stream '(("when" "where" "why" "who")

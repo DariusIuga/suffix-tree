@@ -35,31 +35,3 @@
 ; TODO
 ; Scrieți în continuare restul definițiilor
 ; (care nu necesită o sintaxă specială).
-
-(define (collection? collection) (stream? collection))
-
-(define empty-collection empty-stream)
-
-(define (collection-empty? collection) (equal? collection empty-collection))
-
-(define (collection-first collection) (stream-first collection))
-
-(define (collection-rest collection) (stream-rest collection))
-
-(define (collection-second collection) (collection-first (collection-rest collection)))
-
-(define collection-filter stream-filter)
-
-(define collection-map stream-map)
-
-(define (collection-reverse collection)
-  (if (collection-empty? collection)
-      empty-collection
-      (collection-cons (collection-reverse (collection-rest collection)) (collection-first collection))
-      )
-  )
-
-(define (collection-length collection) (stream-length collection))
-
-(define collection-tail stream-tail)
-

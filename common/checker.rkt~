@@ -1,7 +1,9 @@
 #lang racket
 
-(require "suffix-tree.rkt")
-(require "etapa2.rkt")
+(require "suffix-tree-stream.rkt")
+(require "etapa4.rkt")
+(require "datadump.rkt")
+(provide (all-defined-out))
 
 ; ignorați următoarele linii de cod...
 (define show-defaults 999) ; câte exerciții la care s-au întors rezultate default să fie arătate detaliat
@@ -25,43 +27,75 @@
 
 ; Definițiile pentru tema aceasta încep de aici.
 
-; sufixe banana
-(define suff-1
-  '((#\b #\a #\n #\a #\n #\a #\$)
-    (#\a #\n #\a #\n #\a #\$)
-    (#\n #\a #\n #\a #\$)
-    (#\a #\n #\a #\$)
-    (#\n #\a #\$)
-    (#\a #\$)
-    (#\$)))
+; Funcție care convertește o listă într-un flux.
+; list->stream : List -> Stream
+(define (list->stream L)
+  (if (null? L)
+      empty-stream
+      (stream-cons (car L) (list->stream (cdr L)))))
 
-; sufixe agcgacgag
-(define suff-2
-  '((#\a #\g #\c #\g #\a #\c #\g #\a #\g #\$)
-    (#\g #\c #\g #\a #\c #\g #\a #\g #\$)
-    (#\c #\g #\a #\c #\g #\a #\g #\$)
-    (#\g #\a #\c #\g #\a #\g #\$)
-    (#\a #\c #\g #\a #\g #\$)
-    (#\c #\g #\a #\g #\$)
-    (#\g #\a #\g #\$)
-    (#\a #\g #\$)
-    (#\g #\$)
-    (#\$)))
+; Convertește un ST implementat cu fluxuri în varianta lui "eager"/normală.
+; streamy->eager : ST -> ~ST~?
+(define (streamy->eager st)
+  (map
+   (lambda (branch) (cons (car branch) (streamy->eager (cdr branch))))
+   (stream->list st)))
 
-; sufixe mississippi
-(define suff-3
-  '((#\m #\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\i #\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\s #\i #\p #\p #\i #\$)
-    (#\s #\i #\p #\p #\i #\$)
-    (#\i #\p #\p #\i #\$)
-    (#\p #\p #\i #\$)
-    (#\p #\i #\$)
-    (#\i #\$)
-    (#\$)))
+; Verifică dacă o valoare dată este un stream. Listele obișnuite satisfac
+; interfața pentru `stream?`, așa că verificăm explicit împotriva lor.
+; real-stream? : Any -> Bool
+(define (real-stream? s)
+  (and (stream? s) (not (list? s))))
+
+
+; Test care ignoră comparația cu un rezultat exact, pentru a testa doar condiții.
+(define just-conds (cons (lambda (_ __) #t) "this shouldn't happen?..."))
+
+; Condiție care oprește verificarea dacă un rezultat este placeholder-ul pentru
+; funcții neimplementate. Util când testul presupune că rezultatul are o anumită
+; formă, iar placeholder-ul ar provoca o eroare.
+(define (attempted res) (or (not (equal? 'your-code-here res)) "e placeholder-ul, nu ai încercat exercițiul"))
+
+; Condiție ca o funcție să întoarcă fluxuri și fiecare flux să conțină colecția corectă de cuvinte.
+(define (correct-collection res)
+  (lambda (candidate)
+    (cond
+      [(not (andmap real-stream? candidate))           "nu este o listă de fluxuri"]
+      [(not (equal? res (map stream->list candidate))) (format "diferă de rezultatul corect ~s" res)]
+      [else                                            true])))
+
+; Condiție ca ast-func/cst-func să întoarcă o pereche etichetă-flux cu conținutul corect
+(define (correct-pair res-labels res-suffixes)
+  (lambda (candidate)
+    (cond
+      [(not (andmap pair? candidate))                            "nu este o listă de perechi"]
+      [(not (andmap real-stream? (map cdr candidate)))           "nu este o listă de perechi etichetă-flux"]
+      [(not (equal? res-labels (map car candidate)))             (format "nu are etichetele corecte ~s" res-labels)]
+      [(not (equal? res-suffixes
+                    (map (compose stream->list cdr) candidate))) (format "nu determină corect noile sufixe ~s" res-suffixes)]
+      [else                                                      true])))
+
+
+; Sufixe corecte.
+(define res-suffixes '(((#\w #\h #\a #\t #\' #\s #\$) (#\h #\a #\t #\' #\s #\$) (#\a #\t #\' #\s #\$) (#\t #\' #\s #\$) (#\' #\s #\$) (#\s #\$) (#\$))
+                       ((#\i #\n #\$) (#\n #\$) (#\$))
+                       ((#\a #\$) (#\$))
+                       ((#\n #\a #\m #\e #\? #\$) (#\a #\m #\e #\? #\$) (#\m #\e #\? #\$) (#\e #\? #\$) (#\? #\$) (#\$))))
+
+; ch-words corecte.
+(define res-ch-words '(((#\w #\e #\a #\t #\h #\e #\r #\e #\d) (#\w #\e #\t #\t #\e #\r) (#\w #\e #\a #\t #\h #\e #\r))
+                       ((#\p #\e #\c #\k) (#\p #\i #\c #\k #\l #\e #\d) (#\p #\e #\p #\p #\e #\r #\s) (#\p #\i #\c #\k #\e #\d #\.))
+                       ()))
+
+; Etichete și noi sufixe corecte pentru ast-func.
+(define res-ast-labels '((#\w) (#\a)))
+(define res-ast-new-suffixes '(((#\h #\e #\n) (#\h #\e #\r #\e) (#\h #\y) (#\h #\o))
+                               ((#\l #\l) (#\b #\o #\u #\t) (#\n #\t #\s) (#\s) ())))
+
+; Etichete și noi sufixe corecte pentru cst-func.
+(define res-cst-labels '((#\w #\h) (#\a)))
+(define res-cst-new-suffixes '(((#\e #\n) (#\e #\r #\e) (#\y) (#\o))
+                               ((#\l #\l) (#\b #\o #\u #\t) (#\n #\t #\s) (#\s) ())))
 
 ; ST compact pentru "banana".
 (define stree-1c
@@ -75,162 +109,89 @@
 
 ; ST atomic pentru "banana".
 (define stree-1a
-  '(((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$)))) ((#\$)))) ((#\$)))
+  '(((#\$))
+    ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$)))))))
     ((#\b) ((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$))))))))
-    ((#\n) ((#\a) ((#\n) ((#\a) ((#\$)))) ((#\$))))
-    ((#\$))))
-
-; ST compact pentru "agcgacgag".
-(define stree-2c
-  '(((#\c #\g #\a) ((#\c #\g #\a #\g #\$)) ((#\g #\$)))
-    ((#\a) ((#\c #\g #\a #\g #\$)) ((#\g) ((#\c #\g #\a #\c #\g #\a #\g #\$)) ((#\$))))
-    ((#\g) ((#\c #\g #\a #\c #\g #\a #\g #\$)) ((#\a) ((#\c #\g #\a #\g #\$)) ((#\g #\$))) ((#\$)))
-    ((#\$))))
-
-; ST atomic pentru "agcgacgag".
-(define stree-2a
-  '(((#\$))
-    ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$)) ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))))))))
-    ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$))))))
-    ((#\g)
-     ((#\$))
-     ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$)))))) ((#\g) ((#\$))))
-     ((#\c) ((#\g) ((#\a) ((#\c) ((#\g) ((#\a) ((#\g) ((#\$))))))))))))
-
-; ST compact pentru "mississippi".
-(define stree-3c
-  '(((#\$))
-    ((#\i) ((#\$)) ((#\p #\p #\i #\$)) ((#\s #\s #\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$))))
-    ((#\m #\i #\s #\s #\i #\s #\s #\i #\p #\p #\i #\$))
-    ((#\p) ((#\i #\$)) ((#\p #\i #\$)))
-    ((#\s) ((#\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$))) ((#\s #\i) ((#\p #\p #\i #\$)) ((#\s #\s #\i #\p #\p #\i #\$)))))
-  )
-
-; ST atomic pentru "mississippi".
-(define stree-3a
-  '(((#\$))
-    ((#\m) ((#\i) ((#\s) ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))))))))
-    ((#\i)
-     ((#\$))
-     ((#\s) ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))))
-     ((#\p) ((#\p) ((#\i) ((#\$))))))
-    ((#\s)
-     ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))
-     ((#\s) ((#\i) ((#\s) ((#\s) ((#\i) ((#\p) ((#\p) ((#\i) ((#\$)))))))) ((#\p) ((#\p) ((#\i) ((#\$))))))))
-    ((#\p) ((#\i) ((#\$))) ((#\p) ((#\i) ((#\$)))))))
+    ((#\n) ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$))))))))
 
 
 ; Testele încep de aici.
-(sunt 6 exerciții)
+(sunt 4 exerciții)
 
-(exercițiul 1 : 10 puncte)
-(check-part 'a (/ 1 2) (map (compose get-suffixes string->list) '("what's$" "in$" "a$" "name?$"))  is
-            '(((#\w #\h #\a #\t #\' #\s #\$) (#\h #\a #\t #\' #\s #\$) (#\a #\t #\' #\s #\$) (#\t #\' #\s #\$) (#\' #\s #\$) (#\s #\$) (#\$))
-              ((#\i #\n #\$) (#\n #\$) (#\$))
-              ((#\a #\$) (#\$))
-              ((#\n #\a #\m #\e #\? #\$) (#\a #\m #\e #\? #\$) (#\m #\e #\? #\$) (#\e #\? #\$) (#\? #\$) (#\$))))
-(check-part 'b (/ 1 2) (map (compose get-suffixes string->list) '("nothing,$" "unless$" "name$" "is$" "a$" "free$" "variable.$"))  is
-            '(((#\n #\o #\t #\h #\i #\n #\g #\, #\$)
-               (#\o #\t #\h #\i #\n #\g #\, #\$)
-               (#\t #\h #\i #\n #\g #\, #\$)
-               (#\h #\i #\n #\g #\, #\$)
-               (#\i #\n #\g #\, #\$)
-               (#\n #\g #\, #\$)
-               (#\g #\, #\$)
-               (#\, #\$)
-               (#\$))
-              ((#\u #\n #\l #\e #\s #\s #\$) (#\n #\l #\e #\s #\s #\$) (#\l #\e #\s #\s #\$) (#\e #\s #\s #\$) (#\s #\s #\$) (#\s #\$) (#\$))
-              ((#\n #\a #\m #\e #\$) (#\a #\m #\e #\$) (#\m #\e #\$) (#\e #\$) (#\$))
-              ((#\i #\s #\$) (#\s #\$) (#\$))
-              ((#\a #\$) (#\$))
-              ((#\f #\r #\e #\e #\$) (#\r #\e #\e #\$) (#\e #\e #\$) (#\e #\$) (#\$))
-              ((#\v #\a #\r #\i #\a #\b #\l #\e #\. #\$)
-               (#\a #\r #\i #\a #\b #\l #\e #\. #\$)
-               (#\r #\i #\a #\b #\l #\e #\. #\$)
-               (#\i #\a #\b #\l #\e #\. #\$)
-               (#\a #\b #\l #\e #\. #\$)
-               (#\b #\l #\e #\. #\$)
-               (#\l #\e #\. #\$)
-               (#\e #\. #\$)
-               (#\. #\$)
-               (#\$))))
+(exercițiul 1 : 30 puncte)
+(check-part 'a (/ 1 5)
+            (map (λ (S) (longest-common-prefix-of-collection (stream-map string->list S)))
+                 (map list->stream '(("when" "where" "why" "who")
+                                     ("when" "when is it" "when?")
+                                     ("when is it" "when?" "wendy")
+                                     ("so many" "so" "soo many tests"))))
+            is '((#\w #\h) (#\w #\h #\e #\n) (#\w) (#\s #\o)))
+(check-part 'b (/ 1 5)
+            (map (compose get-suffixes string->list) '("what's$" "in$" "a$" "name?$"))
+            just-conds 'nil attempted (correct-collection res-suffixes))
+(check-part 'c (/ 1 5)
+            (map (λ (S ch) (get-ch-words (stream-map string->list S) ch))
+                 (map list->stream '(("Lesser" "leather" "never" "weathered" "wetter" "weather" "better")
+                                     ("A" "peck" "of" "pickled" "peppers" "Peter" "Piper" "picked.")
+                                     ("Betty" "Botter" "bought" "some" "butter")))
+                 '(#\w #\p #\u))
+            just-conds 'nil attempted (correct-collection res-ch-words))
+(check-part 'd (/ 1 5)
+            (map (λ (S) (ast-func (stream-map string->list S)))
+                 (map list->stream '(("when" "where" "why" "who")
+                                     ("all" "about" "ants" "as" "a"))))
+            just-conds 'nil attempted (correct-pair res-ast-labels res-ast-new-suffixes))
+(check-part 'e (/ 1 5)
+            (map (λ (S) (cst-func (stream-map string->list S)))
+                 (map list->stream '(("when" "where" "why" "who")
+                                     ("all" "about" "ants" "as" "a"))))
+            just-conds 'nil attempted (correct-pair res-cst-labels res-cst-new-suffixes))
 
-(exercițiul 2 : 15 puncte)
-(check-part 'a (/ 1 3) (get-ch-words (map string->list '("Lesser" "leather" "never" "weathered" "wetter" "weather" "better")) #\w) is
-            '((#\w #\e #\a #\t #\h #\e #\r #\e #\d) (#\w #\e #\t #\t #\e #\r) (#\w #\e #\a #\t #\h #\e #\r)))
-(check-part 'b (/ 1 3) (get-ch-words (map string->list '("A" "peck" "of" "pickled" "peppers" "Peter" "Piper" "picked.")) #\p) is
-            '((#\p #\e #\c #\k) (#\p #\i #\c #\k #\l #\e #\d) (#\p #\e #\p #\p #\e #\r #\s) (#\p #\i #\c #\k #\e #\d #\.)))
-(check-part 'c (/ 1 3) (map (λ (ch) (get-ch-words (map string->list '("Betty" "Botter" "bought" "some" "butter")) ch)) '(#\B #\u #\s)) is
-            '(((#\B #\e #\t #\t #\y) (#\B #\o #\t #\t #\e #\r)) () ((#\s #\o #\m #\e))))
 
-(exercițiul 3 : 10 puncte)
-(check-part 'a (/ 1 2) (ast-func (map string->list '("when" "where" "why" "who"))) is
-            '((#\w) (#\h #\e #\n) (#\h #\e #\r #\e) (#\h #\y) (#\h #\o)))
-(check-part 'b (/ 1 2) (ast-func (map string->list '("all" "about" "ants" "as" "a"))) is
-            '((#\a) (#\l #\l) (#\b #\o #\u #\t) (#\n #\t #\s) (#\s) ()))
+(exercițiul 2 : 30 puncte)
+; Condiție care verifică recursiv dacă un ST dat are structura dorită (cu fluxuri).
+(define (correct-stream-structure st)
+  (cond
+    [(not (real-stream? st))        "nu e bun; fiecare ST trebuie să fie stream"]
+    [(not (stream-andmap pair? st)) "nu e bun; fiecare ramură trebuie să fie o pereche obișnuită"]
+    [else
+     ; Verificăm recursiv toți subarborii.
+     (stream-fold (lambda (res b)
+                    (if (string? res) res ; Dacă am găsit deja o eroare, o propagăm.
+                        (correct-stream-structure (get-branch-subtree b))))
+                  true st)]))
 
-(exercițiul 4 : 15 puncte)
-(check-part 'a (/ 1 3) (cst-func (map string->list '("when" "where" "why" "who"))) is
-            '((#\w #\h) (#\e #\n) (#\e #\r #\e) (#\y) (#\o)))
-(check-part 'b (/ 1 3) (cst-func (map string->list '("all" "about" "ants" "as" "a"))) is
-            '((#\a) (#\l #\l) (#\b #\o #\u #\t) (#\n #\t #\s) (#\s) ()))
-(check-part 'c (/ 1 3) (cst-func (map string->list '("sometimes" "something" "somewhere"))) is
-            '((#\s #\o #\m #\e) (#\t #\i #\m #\e #\s) (#\t #\h #\i #\n #\g) (#\w #\h #\e #\r #\e)))
+; Condiție care verifică dacă un ST este varianta cu fluxuri a unui ST normal dat.
+(define (is-stream-of st-res)
+  (lambda (st)
+    (if (equal? st-res (streamy->eager st)) true
+        "nu e bun; nu are etichetele corecte (îl poți vizualiza cu `streamy->eager`)")))
 
-(exercițiul 5 : 40 puncte)
-(check-part 'a (/ 1 8) (suffixes->st ast-func suff-1 (string->list "abn$")) is stree-1a)
-(check-part 'b (/ 1 8) (suffixes->st cst-func suff-1 (string->list "$abn")) is stree-1c)
-(check-part 'c (/ 1 8) (suffixes->st ast-func suff-2 (string->list "$acg")) is stree-2a)
-(check-part 'd (/ 1 8) (suffixes->st cst-func suff-2 (string->list "cag$")) is stree-2c)
-(check-part 'e (/ 1 8) (suffixes->st ast-func suff-3 (string->list "$misp")) is stree-3a)
-(check-part 'f (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$imps")) is stree-3c)
-(check-part 'g (/ 1 8) (suffixes->st ast-func suff-2 (string->list "$abcdefg")) is stree-2a)
-(check-part 'h (/ 1 8) (suffixes->st cst-func suff-3 (string->list "$abcdefghijklmnopqrstuvwxyz")) is stree-3c)
-
-(exercițiul 6 : 30 puncte)
 (when (andmap procedure? (list text->ast text->cst))
-  (check-part 'a (/ 1 6) (text->ast (string->list "banana")) is
-              '(((#\$))
-                ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$)))))))
-                ((#\b) ((#\a) ((#\n) ((#\a) ((#\n) ((#\a) ((#\$))))))))
-                ((#\n) ((#\a) ((#\$)) ((#\n) ((#\a) ((#\$))))))))
-  (check-part 'b (/ 1 6) (text->cst (string->list "banana")) is stree-1c)
-  (check-part 'c (/ 1 6) (text->ast (string->list "agcgacgag")) is stree-2a)
-  (check-part 'd (/ 1 6) (text->cst (string->list "mississippi")) is stree-3c)
-  (check-part 'e (/ 1 6) (text->ast (string->list "abracadabra")) is
-              '(((#\$))
-                ((#\a)
-                 ((#\$))
-                 ((#\b) ((#\r) ((#\a) ((#\$)) ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$))))))))))))
-                 ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))))
-                 ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$))))))))
-                ((#\b) ((#\r) ((#\a) ((#\$)) ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$))))))))))))
-                ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))))
-                ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))
-                ((#\r) ((#\a) ((#\$)) ((#\c) ((#\a) ((#\d) ((#\a) ((#\b) ((#\r) ((#\a) ((#\$)))))))))))))
-  (check-part 'f (/ 1 6) (text->cst (string->list "hocus pocus preparatus")) is
-              '(((#\space #\p) ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)) ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\$))
-                ((#\a) ((#\r #\a #\t #\u #\s #\$)) ((#\t #\u #\s #\$)))
-                ((#\c #\u #\s #\space #\p)
-                 ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                 ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                ((#\h #\o #\c #\u #\s #\space #\p #\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                ((#\o #\c #\u #\s #\space #\p)
-                 ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                 ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\p)
-                 ((#\a #\r #\a #\t #\u #\s #\$))
-                 ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$))
-                 ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\r) ((#\a #\t #\u #\s #\$)) ((#\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                ((#\s)
-                 ((#\space #\p) ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)) ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                 ((#\$)))
-                ((#\t #\u #\s #\$))
-                ((#\u #\s)
-                 ((#\space #\p) ((#\o #\c #\u #\s #\space #\p #\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)) ((#\r #\e #\p #\a #\r #\a #\t #\u #\s #\$)))
-                 ((#\$))))))
+  (check-part 'a (/ 1 2) (text->ast (string->list "banana"))
+              just-conds 'nil attempted correct-stream-structure (is-stream-of stree-1a))
+  (check-part 'b (/ 1 2) (text->cst (string->list "banana"))
+              just-conds 'nil attempted correct-stream-structure (is-stream-of stree-1c))
+  )
+
+
+(exercițiul 3 : 30 puncte)
+(let ([input-list (string->list text-big)]) ; Text mare definit în fișierul datadump.rkt
+  (check-part 'a (/ 1 2)
+              (map ((curry substring?) input-list) (map string->list '("particularly" "definitely" "comu" "computer-based")))
+              is '(#t #f #f #t))
+  (check-part 'b (/ 1 2)
+              (map ((curry substring?) input-list) (map string->list '("racket" "Can Programming Be Liberated" "Scheme, ")))
+              is '(#f #t #t)))
+
+
+(exercițiul 4 : 30 puncte)
+(let ([input-list (string->list text-big)]) ; Text mare definit în fișierul datadump.rkt
+  (check-part 'a (/ 1 3) (repeated-substring-of-given-length input-list 20) is
+              '(#\newline #\newline #\F #\u #\n #\c #\t #\i #\o #\n #\a #\l #\space #\p #\r #\o #\g #\r #\a #\m))
+  (check-part 'b (/ 1 3) (repeated-substring-of-given-length input-list 11) is
+              '(#\newline #\newline #\? #\- #\space #\m #\o #\t #\h #\e #\r))
+  (check-part 'c (/ 1 3) (repeated-substring-of-given-length input-list 28) is
+              '(#\newline #\newline #\H #\i #\g #\h #\e #\r #\- #\o #\r #\d #\e #\r #\space #\f #\u #\n #\c #\t #\i #\o #\n #\s #\space #\a #\r #\e)))
 
 (sumar)
